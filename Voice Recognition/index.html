@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Recognition</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            margin-top: 50px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+        button {
+            background-color: #d81b60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background-color: #ad1457;
+        }
+        #status {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Voice Recognition</h1>
+        <button id="record-btn">🎤 Record Codeword</button>
+        <button id="verify-btn">✅ Submit</button>
+        <p id="status">Click the button and speak.</p>
+        <p id="recognized-text"></p>
+    </div>
+
+    <script>
+        let recognition;
+        document.getElementById("record-btn").addEventListener("click", () => {
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = "en-US";
+            recognition.start();
+            document.getElementById("status").innerText = "Listening...";
+            
+            recognition.onresult = (event) => {
+                let transcript = event.results[0][0].transcript;
+                document.getElementById("recognized-text").innerText = "Recognized Codeword: " + transcript;
+                document.getElementById("status").innerText = "Recorded Successfully!";
+                
+                localStorage.setItem("codeword", transcript); // Store for verification
+            };
+        });
+
+        document.getElementById("verify-btn").addEventListener("click", () => {
+    let storedCodeword = localStorage.getItem("codeword");
+
+    if (storedCodeword) {
+        fetch("save.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "codeword=" + encodeURIComponent(storedCodeword)
+        })
+        .then(response => response.text())
+        .then(data => {
+            console.log("Server Response:", data);
+            document.getElementById("status").innerText = "Recorded Successfully!";
+        })
+        .catch(error => console.error("Error:", error));
+    } else {
+        console.log("No codeword found in localStorage!");
+    }
+});
+
+    </script>
+</body>
+</html>
